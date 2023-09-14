@@ -2,15 +2,28 @@
 
 At SIGGRAPH 2023 the paper "[**3D Gaussian Splatting for Real-Time Radiance Field Rendering**](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/)" by Kerbl, Kopanas, Leimkühler, Drettakis had been released and had impressive speed result comparing to other nerf techniques.
 
-Clarte integrate the original CUDA implementation of [**Differential Gaussian Rasterization**](https://github.com/graphdeco-inria/diff-gaussian-rasterization/tree/main) in a Unity Native Plugin to create a VR viewer of gaussian splatting learned models.
-
-![Screenshot](/screenshot.png)
+Clarte integrate the *original CUDA implementation* of [**Differential Gaussian Rasterization**](https://github.com/graphdeco-inria/diff-gaussian-rasterization/tree/main) in a Unity Native Plugin to create a VR viewer of gaussian splatting learned models.
 
 > For now, only a pre-compiled version for windows is available, source code will be published very soon.
 
-Other people have done their own re-implementation of a gaussian splatting renderer: [UnityGaussianSplatting](https://github.com/aras-p/UnityGaussianSplatting) from aras-p or [WebGPU](https://github.com/cvlab-epfl/gaussian-splatting-web) from cvlab-epfl.
+![Screenshot](/screenshot.png)
 
-## How to start
+Other people have done their own re-implementation of a gaussian splatting renderer for example, [UnityGaussianSplatting](https://github.com/aras-p/UnityGaussianSplatting) from aras-p or [gaussian-splatting-web](https://github.com/cvlab-epfl/gaussian-splatting-web) from cvlab-epfl.
+
+## Installation
+
+### Hardware Requirements
+
+- VR Ready computer
+- CUDA-ready GPU with Compute Capability 7.0+: [Check your card here](https://developer.nvidia.com/cuda-gpus)
+
+### Our hardware was
+  - CPU: Intel Core i7-11700K
+  - RAM: 16Go
+  - GPU: GeForce RTX 3060 Ti
+  - VRAM: 8Go
+
+### How to start
 
 Download the last version of windows VR viewer [release](https://github.com/clarte53/GaussianSplattingVRViewerUnity/releases).
 
@@ -38,6 +51,7 @@ Button `A` or `X` (PrimaryButton) is used to scale down the splat rendering text
 
 If you don't use a Occulus Quest, you can found the key mapping of Unity [here](https://docs.unity3d.com/Manual/xr_input.html).
 
+Press `escape` or `Q` on the keyboard to quit the application.
 
 ## Compile from source
 
