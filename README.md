@@ -10,7 +10,7 @@ Clarte integrate the [**Differential Gaussian Rasterization**](https://github.co
 
 ## How to start
 
-Download the last version of windows VR viewer [release](/releases).
+Download the last version of windows VR viewer [release](https://github.com/clarte53/GaussianSplattingVRViewerUnity/releases).
 
 Download the pre-trained models [**Pre-trained Models (14 GB)**](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/datasets/pretrained/models.zip) that you can found on the original git implementation [**GIT - 3D Gaussian Splatting for Real-Time Radiance Field Rendering**](https://github.com/graphdeco-inria/gaussian-splatting).
 
