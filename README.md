@@ -2,7 +2,7 @@
 
 At SIGGRAPH 2023 the paper "[**3D Gaussian Splatting for Real-Time Radiance Field Rendering**](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/)" by Kerbl, Kopanas, Leimkühler, Drettakis had been released and had impressive speed result comparing to other nerf techniques.
 
-Clarte integrate the *original CUDA implementation* of [**Differential Gaussian Rasterization**](https://github.com/graphdeco-inria/diff-gaussian-rasterization/tree/main) in a Unity Native Plugin to create a VR viewer of gaussian splatting learned models.
+Clarte has integrated the *original CUDA implementation* of [**Differential Gaussian Rasterization**](https://github.com/graphdeco-inria/diff-gaussian-rasterization/tree/main) in a Unity Native Plugin to create a VR viewer of gaussian splatting learned models.
 
 > For now, only a pre-compiled version for windows is available, source code will be published very soon.
 
@@ -20,7 +20,7 @@ Other people have done their own re-implementation of a gaussian splatting rende
 ### Our hardware was
   - CPU: Intel Core i7-11700K
   - RAM: 16Go
-  - GPU: GeForce RTX 3060 Ti
+  - GPU: NVIDIA GeForce RTX 3060 Ti
   - VRAM: 8Go
 
 ### How to start
@@ -39,6 +39,8 @@ Launch the executable `ClarteGaussianSpatting.exe`, il will use Occulus software
 
 Enjoy the VR experiment.
 
+By default the rendering resolution of splats is 50% of the headset default resolution, that's why, image is a bit pixelized. It's done for avoiding performance issues, VR need 2 eyes rendering. You can change this during experiment by using the `A` / `B` buttons on the controllers.
+
 ## Usage
 
 Press one `Grip` button to rotate the scene.
@@ -56,6 +58,20 @@ Press `escape` or `Q` on the keyboard to quit the application.
 ## Compile from source
 
 We are working on a clean version of sources before publishing it, be free to play with the compiled version during this time.
+
+## Performances
+
+On the "bicycle" scene from the paper with the point of view below.
+
+![pov](performance_pov.png)
+
+- Windows in 1024x1024 (NVIDIA GeForce RTX 3060 Ti):
+  - official SiBr viewer: 12ms (80 FPS)
+  - In Unity with OpenGL: 16ms (64 FPS)
+  - In VR (2 eyes, FOV 90): 50ms (20 FPS)
+  - [aras-p](https://github.com/aras-p/UnityGaussianSplatting) current work DX12: 30ms (30 FPS), DX11: 46ms (21FPS) (at 15/09/2023)
+
+In VR more splats are rendered because of the 90° fov instead of 60° and there is two 1024x1024 texture to render, 1 per eye. 
 
 # Dependencies
 
