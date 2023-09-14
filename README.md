@@ -15,7 +15,7 @@ Other people have done their own re-implementation of a gaussian splatting rende
 ### Hardware Requirements
 
 - VR Ready computer
-- CUDA-ready GPU with Compute Capability 7.0+: [Check your card here](https://developer.nvidia.com/cuda-gpus)
+- CUDA-ready GPU with Compute Capability 7.0+ (>Geforce 2060): [Check your card here](https://developer.nvidia.com/cuda-gpus)
 
 ### Our hardware was
   - CPU: Intel Core i7-11700K
