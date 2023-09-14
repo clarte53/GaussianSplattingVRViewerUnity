@@ -1,12 +1,12 @@
-# Unity VR Viewer for Gaussian Splatting
+# Gaussian Splatting VR Viewer
 
-At SIGGRAPH 2023 the paper "[**3D Gaussian Splatting for Real-Time Radiance Field Rendering**](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/)" by Kerbl, Kopanas, Leimkühler, Drettakis had been released and had impressive speed result comparing to other nerf technique.
+At SIGGRAPH 2023 the paper "[**3D Gaussian Splatting for Real-Time Radiance Field Rendering**](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/)" by Kerbl, Kopanas, Leimkühler, Drettakis had been released and had impressive speed result comparing to other nerf techniques.
 
 Clarte integrate the [**Differential Gaussian Rasterization**](https://github.com/graphdeco-inria/diff-gaussian-rasterization/tree/main) in a Unity Native Plugin to create a VR viewer of gaussian splatting learned models.
 
-> For now only a pre-compiled version for windows is available, source code will be published early.
-
 ![Screenshot](/screenshot.png)
+
+> For now, only a pre-compiled version for windows is available, source code will be published very soon.
 
 ## How to start
 
