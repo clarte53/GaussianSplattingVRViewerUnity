@@ -1,0 +1,3 @@
+[submodule "UnityPlugin/dependencies/diff-gaussian-rasterization"]
+	path = UnityPlugin/dependencies/diff-gaussian-rasterization
+	url = https://github.com/graphdeco-inria/diff-gaussian-rasterization.git
