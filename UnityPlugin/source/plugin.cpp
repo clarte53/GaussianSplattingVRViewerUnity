@@ -56,6 +56,16 @@ extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetDrawParameters(int
 	api->SetDrawParameters(pov, position, rotation, proj, fovy, frustums);
 }
 
+extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API GetSceneSize(float* scene_min, float* scene_max) {
+	if (api == nullptr) { return; }
+	api->splat.GetSceneSize(scene_min, scene_max);
+}
+
+extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetCrop(float* box_min, float* box_max) {
+	if (api == nullptr) { return; }
+	api->splat.SetCrop(box_min, box_max);
+}
+
 extern "C" UNITY_INTERFACE_EXPORT int UNITY_INTERFACE_API GetNbSplat() {
 	if (api == nullptr) { return 0; }
 	return api->splat.pos.size();

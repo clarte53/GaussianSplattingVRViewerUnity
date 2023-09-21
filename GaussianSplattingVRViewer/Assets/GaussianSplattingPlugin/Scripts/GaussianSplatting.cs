@@ -25,6 +25,8 @@ public class GaussianSplatting : MonoBehaviour
         [DllImport("gaussiansplatting", EntryPoint = "IsInitialized")] public static extern bool IsInitialized();
         [DllImport("gaussiansplatting", EntryPoint = "GetTextureNativePointer")] public static extern System.IntPtr GetTextureNativePointer(int pov);
         [DllImport("gaussiansplatting", EntryPoint = "SetDrawParameters")] public static extern void SetDrawParameters(int pov, float[] position, float[] rotation, float[] proj, float fovy, float[] frustums);
+        [DllImport("gaussiansplatting", EntryPoint = "SetCrop")] public static extern void SetCrop(float[] box_min, float[] box_max);
+        [DllImport("gaussiansplatting", EntryPoint = "GetSceneSize")] public static extern void GetSceneSize(float[] scene_min, float[] scene_max);
         [DllImport("gaussiansplatting", EntryPoint = "IsDrawn")] public static extern bool IsDrawn();
         [DllImport("gaussiansplatting", EntryPoint = "GetNbSplat")] public static extern int GetNbSplat();
     }
@@ -36,6 +38,7 @@ public class GaussianSplatting : MonoBehaviour
     public Camera cam;
     public bool isXr;
     public Transform trackTRS;
+    public bool initCrop = true;
 
     [Header("Dynamic Parameters")]
     public bool loadModelEvent = false;
@@ -44,6 +47,8 @@ public class GaussianSplatting : MonoBehaviour
     public float renderScale = 0.5f;
     [Range(0.1f, 1f)]
     public float texFactor = 0.5f;
+    public Vector3 cropMin = Vector3.zero;
+    public Vector3 cropMax = Vector3.one;
 
     [Header("Informations")]
     public bool loaded = false;
@@ -53,6 +58,8 @@ public class GaussianSplatting : MonoBehaviour
     public Vector2Int internalTexSize;
     public Texture2D[] tex;
     public bool isInError = false;
+    public Vector3 sceneMin = Vector3.zero;
+    public Vector3 sceneMax = Vector3.one;
 
     private float lastTexFactor = 0.5f;
     private GameObject real_leye, real_reye;
@@ -61,6 +68,8 @@ public class GaussianSplatting : MonoBehaviour
     private Texture2D blackTexture = null;
     private int countDrawErrors = 0;
     private bool waitForTexture = false;
+    private Vector3 curCropMin = Vector3.zero;
+    private Vector3 curCropMax = Vector3.one;
 
     bool TryGetEyesPoses(out Vector3 lpos, out Vector3 rpos, out Quaternion lrot, out Quaternion rrot)
     {
@@ -96,6 +105,18 @@ public class GaussianSplatting : MonoBehaviour
             {
                 model_file_path = Application.temporaryCachePath + "/default.ply";
                 File.WriteAllBytes(model_file_path, default_model.bytes);
+
+                //Default model automatic crop/scale/pos/rot
+                if (trackTRS != null)
+                {
+                    trackTRS.localScale = Vector3.one * 0.36f;
+                    trackTRS.localPosition = new Vector3(0, 4.07f, -1.44f) * 0.36f;
+                    trackTRS.localRotation = Quaternion.Euler(11, -38, 3.7f);
+                }
+                initCrop = false;
+                texFactor = 0.8f;
+                cropMin = new Vector3(-2.1f, -4.7f, -0.65f);
+                cropMax = new Vector3(6.17f, 5.7f, 5.5f);
             }
         }
 
@@ -219,6 +240,21 @@ public class GaussianSplatting : MonoBehaviour
                     }
                     else
                     {
+                        float[] box_min = { 0, 0, 0 };
+                        float[] box_max = { 1, 1, 1 };
+                        GaussianSplattingNI.GetSceneSize(box_min, box_max);
+                        sceneMin = new Vector3(box_min[0], box_min[1], box_min[2]);
+                        sceneMax = new Vector3(box_max[0], box_max[1], box_max[2]);
+                        if (initCrop)
+                        {
+                            cropMin = sceneMin;
+                            cropMax = sceneMax;
+                            curCropMin = cropMin;
+                            curCropMax = cropMax;
+                        }
+
+                        initCrop = false;
+
                         //Init done get external texture
                         for (int i = 0; i < (isXr ? 2 : 1); ++i)
                         {
@@ -227,8 +263,16 @@ public class GaussianSplatting : MonoBehaviour
 
                             mat.SetTexture(i == 0 ? "_GaussianSplattingTexLeftEye" : "_GaussianSplattingTexRightEye", tex[i]);
                         }
-
                     }
+                }
+
+                if (curCropMin != cropMin || curCropMax != cropMax)
+                {
+                    curCropMin = cropMin;
+                    curCropMax = cropMax;
+                    float[] box_min = { curCropMin.x, curCropMin.y, curCropMin.z };
+                    float[] box_max = { curCropMax.x, curCropMax.y, curCropMax.z };
+                    GaussianSplattingNI.SetCrop(box_min, box_max);
                 }
 
                 if (sendDrawEvent)

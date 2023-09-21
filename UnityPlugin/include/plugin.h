@@ -14,6 +14,8 @@ extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetPovParameters(int 
 extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API IsInitialized();
 extern "C" UNITY_INTERFACE_EXPORT void* UNITY_INTERFACE_API GetTextureNativePointer(int pov);
 extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetDrawParameters(int pov, float* position, float* rotation, float* proj, float fovy, float* frustums);
+extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API GetSceneSize(float* scene_min, float* scene_max);
+extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetCrop(float* box_min, float* box_max);
 extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API DrawSync();
 extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API IsDrawn();
 

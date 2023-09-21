@@ -43,6 +43,20 @@ struct RichPoint
 
 template<int D> int loadPly(const char* filename, std::vector<Pos>& pos, std::vector<SHs<3>>& shs, std::vector<float>& opacities, std::vector<Scale>& scales, std::vector<Rot>& rot, Vector3f& minn, Vector3f& maxx) throw(std::bad_exception);
 
+void GaussianSplattingRenderer::SetCrop(float* box_min, float* box_max) {
+	_boxmin = Vector3f(box_min);
+	_boxmax = Vector3f(box_max);
+}
+
+void GaussianSplattingRenderer::GetSceneSize(float* scene_min, float* scene_max) {
+	scene_min[0] = _scenemin.x();
+	scene_min[1] = _scenemin.y();
+	scene_min[2] = _scenemin.z();
+	scene_max[0] = _scenemax.x();
+	scene_max[1] = _scenemax.y();
+	scene_max[2] = _scenemax.z();
+}
+
 void GaussianSplattingRenderer::Load(const char* file) {
 	// Load the PLY data (AoS) to the GPU (SoA)
 	if (_sh_degree == 1)

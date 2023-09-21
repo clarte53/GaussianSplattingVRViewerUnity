@@ -49,4 +49,6 @@ public:
 public:
 	void Load(const char* file) throw(std::bad_exception);
 	void Render(float* image_cuda, Matrix4f view_mat, Matrix4f proj_mat, Vector3f position, float fovy, int width, int height) throw(std::bad_exception);
+	void SetCrop(float* box_min, float* box_max);
+	void GetSceneSize(float* scene_min, float* scene_max);
 };

@@ -9,7 +9,9 @@ public class MainMenuSwitcher : MonoBehaviour
 {
     public InputActionReference menuActivate;
     public GameObject grabScaleWorldObject;
+    public GameObject mainUiObject;
     public GameObject menuObject;
+    public GameObject loadingObject;
     public float menuDeadZoneRotation = 45;
     public GaussianSplatting gs;
     public TMPro.TextMeshProUGUI fpsText;
@@ -27,6 +29,8 @@ public class MainMenuSwitcher : MonoBehaviour
     void Start()
     {
         grabScaleWorldObject.SetActive(true);
+        mainUiObject.SetActive(false);
+        loadingObject.SetActive(false);
         menuObject.SetActive(false);
         menuActivate.action.performed += MenuActivate_performed;
         texScaleSlider.value = Mathf.Floor(gs.texFactor * 10);
@@ -40,8 +44,26 @@ public class MainMenuSwitcher : MonoBehaviour
         if (Keyboard.current.qKey.wasReleasedThisFrame) { QuitApplication(); }
         if (Keyboard.current.escapeKey.wasReleasedThisFrame) { QuitApplication(); }
 
+        //Show loading pannel
+        if (!gs.loadModelEvent && !gs.loaded && !gs.isInError)
+        {
+            mainUiObject.SetActive(true);
+            loadingObject.SetActive(true);
+        }
+        
+        //Deactivate menu on the frame where data is loaded and not already initialized
+        if (gs.loaded && !gs.initialized)
+        {
+            texScaleSlider.value = Mathf.Floor(gs.texFactor * 10);
+            mainUiObject.SetActive(false);
+            loadingObject.SetActive(false);
+        }
+
         //Show menu to show error
-        if (gs.isInError && !menuObject.activeSelf) { ActivateMenu(); }
+        if (gs.isInError && !mainUiObject.activeSelf) {
+            loadingObject.SetActive(false);
+            ActivateMenu();
+        }
 
         nb_frame += 1;
         if (sw.ElapsedMilliseconds > 250)
@@ -53,10 +75,10 @@ public class MainMenuSwitcher : MonoBehaviour
         resolutionText.text = gs.internalTexSize == Vector2.zero ? "" : string.Format("{0}x{1} px", gs.internalTexSize.x, gs.internalTexSize.y);
         resolutionPercent.text = string.Format("{0}%", Mathf.RoundToInt(gs.texFactor * 100));
 
-        if (menuObject.activeSelf)
+        if (mainUiObject.activeSelf)
         {
             Vector3 cible = Camera.main.transform.position;
-            menuObject.transform.position = Vector3.Lerp(menuObject.transform.position, cible, Time.deltaTime);
+            mainUiObject.transform.position = Vector3.Lerp(mainUiObject.transform.position, cible, Time.deltaTime);
 
             Quaternion yangle = Quaternion.Euler(0, Camera.main.transform.rotation.eulerAngles.y, 0);
             Quaternion cangle = Quaternion.Euler(0, cibleAngle, 0);
@@ -64,7 +86,7 @@ public class MainMenuSwitcher : MonoBehaviour
             {
                 cibleAngle = Camera.main.transform.rotation.eulerAngles.y;
             }
-            menuObject.transform.rotation = Quaternion.Lerp(menuObject.transform.rotation, Quaternion.Euler(0, cibleAngle, 0), Time.deltaTime);
+            mainUiObject.transform.rotation = Quaternion.Lerp(mainUiObject.transform.rotation, Quaternion.Euler(0, cibleAngle, 0), Time.deltaTime);
         }
         lastMessage.text = gs.lastMessage;
         lastMessage.color = gs.isInError ? Color.red : Color.black;
@@ -86,23 +108,29 @@ public class MainMenuSwitcher : MonoBehaviour
 
     private void MenuActivate_performed(InputAction.CallbackContext obj)
     {
+        //if model is loading ignore event.
+        if (!gs.loadModelEvent && !gs.loaded && !gs.isInError)
+        {
+            return;
+        }
+        
         if (grabScaleWorldObject.activeSelf)
         {
             ActivateMenu();
         } 
         else
         {
-            grabScaleWorldObject.SetActive(true);
-            menuObject.SetActive(false);
+            CloseMenu();
         }
     }
 
     private void ActivateMenu()
     {
         grabScaleWorldObject.SetActive(false);
+        mainUiObject.SetActive(true);
         menuObject.SetActive(true);
-        menuObject.transform.position = Camera.main.transform.position;
-        menuObject.transform.rotation = Quaternion.Euler(0, Camera.main.transform.rotation.eulerAngles.y, 0);
+        mainUiObject.transform.position = Camera.main.transform.position;
+        mainUiObject.transform.rotation = Quaternion.Euler(0, Camera.main.transform.rotation.eulerAngles.y, 0);
     }
 
     public void SliderValueChanged(float value)
@@ -113,5 +141,11 @@ public class MainMenuSwitcher : MonoBehaviour
     public void QuitApplication()
     {
         Application.Quit();
+    }
+
+    public void CloseMenu()
+    {
+        grabScaleWorldObject.SetActive(true);
+        mainUiObject.SetActive(false);
     }
 }
