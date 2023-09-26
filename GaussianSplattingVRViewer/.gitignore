@@ -41,3 +41,4 @@ sysinfo.txt
 Assets/StreamingAssets/crashlytics-build.properties
 
 Assets/Resources/OVRBuildConfig.asset*
+point_cloud.ply

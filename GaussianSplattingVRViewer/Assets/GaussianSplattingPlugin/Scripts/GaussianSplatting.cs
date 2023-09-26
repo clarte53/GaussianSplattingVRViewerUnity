@@ -114,7 +114,7 @@ public class GaussianSplatting : MonoBehaviour
                     trackTRS.localRotation = Quaternion.Euler(11, -38, 3.7f);
                 }
                 initCrop = false;
-                texFactor = 0.8f;
+                texFactor = 0.7f;
                 cropMin = new Vector3(-2.1f, -4.7f, -0.65f);
                 cropMax = new Vector3(6.17f, 5.7f, 5.5f);
             }
@@ -140,6 +140,8 @@ public class GaussianSplatting : MonoBehaviour
     private void OnDisable()
     {
         Camera.onPreRender -= OnPreRenderCallback;
+        tex = null;
+        lastMessage = "";
     }
 
     public void SetBlackTexture()
