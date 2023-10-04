@@ -2,7 +2,7 @@
 
 At SIGGRAPH 2023 the paper "[**3D Gaussian Splatting for Real-Time Radiance Field Rendering**](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/)" by Kerbl, Kopanas, Leimkühler, Drettakis has been published and features impressive rendering speeds compared to other nerf techniques.
 
-Clarte has integrated [**Differential Gaussian Rasterization**](https://github.com/graphdeco-inria/diff-gaussian-rasterization/tree/main) in a Unity Native Plugin to create a OpenXR viewer of gaussian splatting learned models. This project is the orinal implementation of gaussian splatting renderer written in CUDA. The plugin also works without OpenXR to render gaussian splatting in Unity.
+Clarte has integrated [**Differential Gaussian Rasterization**](https://github.com/graphdeco-inria/diff-gaussian-rasterization/tree/main) in a Unity Native Plugin to create a OpenXR viewer of gaussian splatting learned models. This project is the original implementation of gaussian splatting renderer written in CUDA. The plugin also works without OpenXR to render gaussian splatting in Unity.
 
 > A pre-compiled version of the OpenXR viewer for windows is available for testing. You can also compile from source or open the unity project.
 
