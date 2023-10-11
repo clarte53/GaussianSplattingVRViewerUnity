@@ -42,3 +42,4 @@ Assets/StreamingAssets/crashlytics-build.properties
 
 Assets/Resources/OVRBuildConfig.asset*
 point_cloud.ply
+Assets/GaussianSplattingPlugin/default_model.bytes
