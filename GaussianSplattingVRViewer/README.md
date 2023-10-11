@@ -2,6 +2,10 @@
 
 A project to view gaussian splatting in OpenXR in Unity 2022. Actually Gaussian splatting script have to be attached to a camera, it's the main usage, but feel free to develop your own script for different usage.
 
+## Starting
+
+After cloning the repository and before opening the unity project, download the `default_model.bytes` file in [release](https://github.com/clarte53/GaussianSplattingVRViewerUnity/releases) and copy it to `Assets/GaussianSplattingPlugin` repository just near `default_model.bytes.meta` file.
+
 ## Packages
 The project use [XR Plugin Management](https://docs.unity3d.com/Packages/com.unity.xr.management@4.4/manual/index.html) and [XR Interaction Toolkit](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.5/manual/index.html) for OpenXR management and XR interaction.
 
