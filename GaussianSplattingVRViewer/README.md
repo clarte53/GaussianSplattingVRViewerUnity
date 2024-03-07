@@ -45,6 +45,6 @@ The others parameters are just information about runtime, nb splats, last api me
 
 ## Gaussian Splatting Camera Blit Script
 
-This script is used to blit the generated texture by gaussian splatting script to the background of the camera, using left/right texture in VR of only Left texture if VR is not check.
+This script is used to blit the generated texture by gaussian splatting script to the background of the camera, using left/right texture in VR or only Left texture if VR is not check.
 
 ![Gaussian Blit](gaussian_blit.png)
