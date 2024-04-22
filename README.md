@@ -10,6 +10,11 @@ Clarte has integrated [**Differential Gaussian Rasterization**](https://github.c
 
 Other people have implemented their own gaussian splatting renderers. For example, aras-p has implemented a renderer for Unity ([UnityGaussianSplatting](https://github.com/aras-p/UnityGaussianSplatting)), and the CVLab at EPFL has implemented a WebGL renderer ([gaussian-splatting-web](https://github.com/cvlab-epfl/gaussian-splatting-web)).
 
+In this version we've add:
+- Loading multiple models simultaneously
+- Gaussian can be rendered on multiple camera
+- Depth mix with the 3D scene
+
 ## Installation
 
 ### Hardware Requirements
@@ -31,7 +36,9 @@ Download the latest version of the VR viewer [release](https://github.com/clarte
 
 Connect your headset and set its runtime as the default OpenXR runtime.
 
-Launch the executable `GaussianSplattingVRViewer.exe`, it will launch the VR application in OpenXR environment. You should see something like this.
+Launch the executable `GaussianSplattingVRViewer.exe`, it will launch the VR application in OpenXR environment.
+A menu appear with the list of model that you can load.
+Load "default.ply", you should see something like this.
 
 ![Screenshot clarte](screen_default.png)
 
@@ -45,7 +52,7 @@ To do so, copy a `point_cloud.ply` file, for example the one in `models/bicycle/
 
 ![point_cloud](/point_cloud_ply.png)
 
-Launch the executable `GaussianSplattingVRViewer.exe`, it will load the **point_cloud.ply** file instead of the default default demo model.
+Launch the executable `GaussianSplattingVRViewer.exe`, the file will appear in the menu list. You can put as many as `*.ply` file you want. Now you can load the **point_cloud.ply** file instead of the default demo model.
 
 Enjoy gaussian splatting in VR again!
 
@@ -61,7 +68,7 @@ The `Joystick` on the left controller can be used to translate in the scene. For
 
 The `Joystick` on the right controller can be used to turn left, right or 180°.
 
-The `Menu` button on left controller is used to display a menu. In this menu, you can change the rendering resolution, watch the rendering speed and the number of splats of the model. A button to quit the application is also available.
+The `Menu` button on left controller is used to display a menu. In this menu, you can change the rendering resolution, watch the rendering speed and the number of total splats of the models. Here you can also view the list of models you can load and lock a model to disable the rotate and scale. A button to quit the application is also available.
 
 Alternatively, the `escape` or `Q` keys can be pressed to quit the application.
 
@@ -92,6 +99,6 @@ In VR more splats are rendered because of the 90° fov instead of 60° and there
 
 # Dependencies
 
-Source used as submodule: [Differential Gaussian Rasterization](https://github.com/graphdeco-inria/diff-gaussian-rasterization/tree/main).
+A modified version of [Differential Gaussian Rasterization](https://github.com/graphdeco-inria/diff-gaussian-rasterization/tree/main) is used as submodule.
 
 Dependencies distributed as precompiled dlls: [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page), [gl3w](https://github.com/skaslev/gl3w), [glew](https://glew.sourceforge.net/).
