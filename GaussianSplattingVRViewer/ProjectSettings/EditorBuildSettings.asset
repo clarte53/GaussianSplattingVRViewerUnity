@@ -8,6 +8,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GaussianSplattingVR.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 0
+    path: Assets/Scenes/GaussianSplattingCam.unity
+    guid: c5ad68e236f01b1429451b1958073ebf
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 0b59ab918f653ca40aebcf301a0b560f, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: e8c5553b1dba6a447a8139c709fd2dc6, type: 2}

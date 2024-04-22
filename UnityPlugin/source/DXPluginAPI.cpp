@@ -33,7 +33,6 @@ DXPluginAPI::DXPOV::~DXPOV() {
 }
 
 DXPluginAPI::~DXPluginAPI() {
-	povs.resize(0);
 }
 
 bool DXPluginAPI::DXPOV::Init(string& message) {
@@ -48,13 +47,32 @@ bool DXPluginAPI::DXPOV::Init(string& message) {
 	HRESULT hr;
 	ID3D11DeviceContext* dxContext;
 	dxDevice->GetImmediateContext(&dxContext);
-	D3D11_TEXTURE2D_DESC desc = { width, height, 1, 1, DXGI_FORMAT_R32G32B32A32_FLOAT, {1,0}, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0 };
-	hr = dxDevice->CreateTexture2D(&desc, nullptr, &pTexture); if (dx_error(hr, message)) { return false; }
-	hr = dxDevice->CreateShaderResourceView(pTexture, nullptr, &pShaderView); if (dx_error(hr, message)) { return false; }
+	{
+		//Allocate main texture
+		D3D11_TEXTURE2D_DESC desc = { width, height, 1, 1, DXGI_FORMAT_R32G32B32A32_FLOAT, {1,0}, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0 };
+		hr = dxDevice->CreateTexture2D(&desc, nullptr, &pTexture); if (dx_error(hr, message)) { return false; }
+		hr = dxDevice->CreateShaderResourceView(pTexture, nullptr, &pShaderView); if (dx_error(hr, message)) { return false; }
 
-	if (cudaPeekAtLastError() != cudaSuccess) { message = cudaGetErrorString(cudaGetLastError()); return false; }
-	cudaGraphicsD3D11RegisterResource(&imageBufferCuda, pTexture, cudaGraphicsRegisterFlagsSurfaceLoadStore);
-	_interop_failed = !(cudaPeekAtLastError() == cudaSuccess);
+		cudaGraphicsD3D11RegisterResource(&imageBufferCuda, pTexture, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+		_interop_failed = CUDA_ERROR(message);
+	}
+
+	if (!_interop_failed) {
+		//Allocate depth texture
+		D3D11_TEXTURE2D_DESC desc = { width, height, 1, 1, DXGI_FORMAT_R32_FLOAT, {1,0}, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0 };
+		hr = dxDevice->CreateTexture2D(&desc, nullptr, &pDepthTexture); if (dx_error(hr, message)) { return false; }
+		hr = dxDevice->CreateShaderResourceView(pDepthTexture, nullptr, &pDepthShaderView); if (dx_error(hr, message)) { return false; }
+
+		cudaGraphicsD3D11RegisterResource(&imageDepthBufferCuda, pDepthTexture, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+		_interop_failed = CUDA_ERROR(message);
+	}
+
+	if (!_interop_failed) {
+		//Map camera depth texture to cuda
+		if (cudaPeekAtLastError() != cudaSuccess) { message = cudaGetErrorString(cudaGetLastError()); return false; }
+		cudaGraphicsD3D11RegisterResource(&imageCameraDepthBufferCuda, pCameraDepthTexture, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+		_interop_failed = CUDA_ERROR(message);
+	}
 
 	return POV::AllocFallbackIfNeeded(message);
 }
@@ -63,11 +81,19 @@ void* DXPluginAPI::DXPOV::GetTextureNativePointer() {
 	return pShaderView;
 }
 
+void* DXPluginAPI::DXPOV::GetDepthTextureNativePointer() {
+	return pDepthShaderView;
+}
+
+void DXPluginAPI::DXPOV::SetCameraDepthTextureNativePointer(void* ptr) {
+	pCameraDepthTexture = (ID3D11Texture2D*)ptr;
+}
+
 POV* DXPluginAPI::CreatePOV() {
 	return new DXPOV(dxDevice);
 }
 
-bool DXPluginAPI::Init()
+void DXPluginAPI::Init()
 {
 	//Get a cuda device for current DirectX device.
 	HRESULT hr;
@@ -79,13 +105,13 @@ bool DXPluginAPI::Init()
 		_device = devices[0];
 	}
 	delete[] devices;
-	if (cuda_error(_message)) { return false; }
+	if (CUDA_ERROR(_message)) { return; }
 
 	if (nb_devices == 0) {
 		_message = "No CUDA devices detected!";
-		return false;
+		return;
 	}
 
-	if (!PluginAPI::SetAndCheckCudaDevice()) { return false; }
-	return PluginAPI::InitPovs();
+	if (!PluginAPI::SetAndCheckCudaDevice()) { return; }
+	PluginAPI::InitPovs();
 }

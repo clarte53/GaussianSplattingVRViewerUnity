@@ -23,12 +23,31 @@ extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API IsAPIReady() {
 extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API LoadModel(const char* file) {
 	if (api == nullptr) { return false; }
 	return api->LoadModel(file);
-
 }
 
-extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetNbPov(int nb_pov) {
+extern "C" UNITY_INTERFACE_EXPORT int UNITY_INTERFACE_API CopyModelToCuda() {
+	if (api == nullptr) { return 0; }
+	return api->CopyModelToCuda();
+}
+
+extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API RemoveModelFromCuda(int model) {
+	if (api == nullptr) { return false; }
+	return api->RemoveModelFromCuda(model);
+}
+
+extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetActiveModel(int model, bool active) {
 	if (api == nullptr) { return; }
-	api->SetNbPov(nb_pov);
+	api->SetActiveModel(model, active);
+}
+
+extern "C" UNITY_INTERFACE_EXPORT int UNITY_INTERFACE_API CreatePov() {
+	if (api == nullptr) { return 0; }
+	return api->CreatePov();
+}
+
+extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API RemovePov(int pov) {
+	if (api == nullptr) { return; }
+	api->RemovePov(pov);
 }
 
 extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetPovParameters(int pov, int width, int height) {
@@ -36,44 +55,54 @@ extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetPovParameters(int 
 	api->SetPovParameters(pov, width, height);
 }
 
-extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API IsInitialized() {
+extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API IsInitialized(int pov) {
 	if (api == nullptr) { return false; }
-	return api->IsInitialized();
+	return api->IsInitialized(pov);
 }
 
-extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API DrawSync() {
+extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API IsDrawn(int pov) {
 	if (api == nullptr) { return false; }
-	return api->Draw();
+	return api->IsDrawn(pov);
 }
 
-extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API IsDrawn() {
+extern "C" UNITY_INTERFACE_EXPORT bool UNITY_INTERFACE_API IsPreprocessed(int pov) {
 	if (api == nullptr) { return false; }
-	return api->IsDrawn();
+	return api->IsPreprocessed(pov);
 }
 
-extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetDrawParameters(int pov, float* position, float* rotation, float* proj, float fovy, float* frustums) {
+extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetDrawParameters(int pov, int model, float* position, float* rotation, float* scale, float* proj, float fovy, float* frustums) {
 	if (api == nullptr) { return; }
-	api->SetDrawParameters(pov, position, rotation, proj, fovy, frustums);
+	api->SetDrawParameters(pov, model, position, rotation, scale, proj, fovy, frustums);
 }
 
-extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API GetSceneSize(float* scene_min, float* scene_max) {
+extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API GetModelCrop(int model, float* box_min, float* box_max) {
 	if (api == nullptr) { return; }
-	api->splat.GetSceneSize(scene_min, scene_max);
+	api->splat.GetModelCrop(model, box_min, box_max);
 }
 
-extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetCrop(float* box_min, float* box_max) {
+extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetModelCrop(int model, float* box_min, float* box_max) {
 	if (api == nullptr) { return; }
-	api->splat.SetCrop(box_min, box_max);
+	api->splat.SetModelCrop(model, box_min, box_max);
 }
 
 extern "C" UNITY_INTERFACE_EXPORT int UNITY_INTERFACE_API GetNbSplat() {
 	if (api == nullptr) { return 0; }
-	return api->splat.pos.size();
+	return api->splat.GetNbSplat();
 }
 
 extern "C" UNITY_INTERFACE_EXPORT void* UNITY_INTERFACE_API GetTextureNativePointer(int pov) {
 	if (api == nullptr) { return nullptr; }
 	api->GetTextureNativePointer(pov);
+}
+
+extern "C" UNITY_INTERFACE_EXPORT void* UNITY_INTERFACE_API GetDepthTextureNativePointer(int pov) {
+	if (api == nullptr) { return nullptr; }
+	api->GetDepthTextureNativePointer(pov);
+}
+
+extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetCameraDepthTextureNativePointer(int pov, void* ptr) {
+	if (api == nullptr) { return; }
+	api->SetCameraDepthTextureNativePointer(pov, ptr);
 }
 
 //Render event callback, called by GL.IssuePluginEvent on render thread.
@@ -91,10 +120,19 @@ static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType ev
 	// Create graphics API implementation upon initialization
 	if (eventType == UnityGfxDeviceEventType::kUnityGfxDeviceEventInitialize)
 	{
-		if (api != nullptr) { delete api; }
-		api = PluginAPI::Create(s_Graphics->GetRenderer(), s_UnityInterfaces);
+		if (api != nullptr) { delete api; api = nullptr; }
+
+		//Initialize api
+		PluginAPI* t_api = nullptr;
+		t_api = PluginAPI::Create(s_Graphics->GetRenderer(), s_UnityInterfaces);
+		if (t_api != nullptr) {
+			t_api->OnGraphicsDeviceEvent(eventType);
+		}
+		api = t_api;
+		return;
 	}
 
+	//Other events are launched
 	if (api != nullptr) {
 		api->OnGraphicsDeviceEvent(eventType);
 	}

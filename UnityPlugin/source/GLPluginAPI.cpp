@@ -57,6 +57,25 @@ bool GLPluginAPI::GLPOV::Init(string& message) {
 	cudaGraphicsGLRegisterImage(&imageBufferCuda, imageBuffer, GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
 	_interop_failed = !(cudaPeekAtLastError() == cudaSuccess);
 
+	if (!_interop_failed) {
+		glGenTextures(1, &depthBuffer);
+		glBindTexture(GL_TEXTURE_2D, depthBuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, width, 0, GL_RED, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+		if (cudaPeekAtLastError() != cudaSuccess) { message = cudaGetErrorString(cudaGetLastError()); return false; }
+		cudaGraphicsGLRegisterImage(&imageDepthBufferCuda, depthBuffer, GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+		_interop_failed = !(cudaPeekAtLastError() == cudaSuccess);
+	}
+
+	if (!_interop_failed) {
+		cudaGraphicsGLRegisterImage(&imageCameraDepthBufferCuda, cameraDepthBuffer, GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+		_interop_failed = !(cudaPeekAtLastError() == cudaSuccess);
+	}
+
 	return POV::AllocFallbackIfNeeded(message);
 }
 
@@ -64,21 +83,29 @@ void* GLPluginAPI::GLPOV::GetTextureNativePointer() {
 	return (void*)imageBuffer;
 }
 
+void* GLPluginAPI::GLPOV::GetDepthTextureNativePointer() {
+	return (void*)depthBuffer;
+}
+
+void GLPluginAPI::GLPOV::SetCameraDepthTextureNativePointer(void* ptr) {
+	cameraDepthBuffer = (GLuint)ptr;
+}
+
 POV* GLPluginAPI::CreatePOV() {
 	return new GLPOV;
 }
 
-bool GLPluginAPI::Init()
+void GLPluginAPI::Init()
 {
 	int num_devices;
-	cudaGetDeviceCount(&num_devices); if (cuda_error(_message)) { return false; }
+	cudaGetDeviceCount(&num_devices); if (CUDA_ERROR(_message)) { return; }
 
 	_device = 0;
 	if (_device >= num_devices) {
 		_message = "No CUDA devices detected!";
-		return false;
+		return;
 	}
 
-	if (!PluginAPI::SetAndCheckCudaDevice()) { return false; }
-	return PluginAPI::InitPovs();
+	if (!PluginAPI::SetAndCheckCudaDevice()) { return; }
+	PluginAPI::InitPovs();
 }

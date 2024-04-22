@@ -27,58 +27,68 @@ Here is the list of dll entries. for a concrete usage example, see unity project
 ```csharp
 //Init event value, send it with GL.IssuePluginEvent after SetNbPov and SetPovParameters
 public const int INIT_EVENT = 0x0001;
-//Draw event value, send it with GL.IssuePluginEvent after SetDrawParameters
+//Draw event value, send it with GL.IssuePluginEvent after Preprocessed
 public const int DRAW_EVENT = 0x0002;
+//preprocess event value, send it with GL.IssuePluginEvent after SetDrawParameters
+public const int PREPROCESS_EVENT = 0x0003;
 
 // Entry point for GL.IssuePluginEvent
-[DllImport("gaussiansplatting", EntryPoint = "GetRenderEventFunc")] public static extern System.IntPtr GetRenderEventFunc();
+[DllImport("gaussiansplatting", EntryPoint = "GetRenderEventFunc")] public static extern IntPtr GetRenderEventFunc();
 
 // Return true if api is ready
 [DllImport("gaussiansplatting", EntryPoint = "IsAPIReady")] public static extern bool IsAPIReady();
 
 //Get the last message from api
-[DllImport("gaussiansplatting", EntryPoint = "GetLastMessage")] private static extern System.IntPtr _GetLastMessage();
+[DllImport("gaussiansplatting", EntryPoint = "GetLastMessage")] private static extern IntPtr _GetLastMessage();
 static public string GetLastMessage() { return Marshal.PtrToStringAnsi(_GetLastMessage()); }
 
 //Load the model, this call is blocking so it's better to start it in a thread.
 [DllImport("gaussiansplatting", EntryPoint = "LoadModel")] public static extern bool LoadModel(string file);
 
-//Set the number of POV to render each draw call (used for multiple camera)
-[DllImport("gaussiansplatting", EntryPoint = "SetNbPov")] public static extern void SetNbPov(int nb_pov);
+//Import last loaded model to cuda return the internal id of the model
+[DllImport("gaussiansplatting", EntryPoint = "CopyModelToCuda")] public static extern int CopyModelToCuda();
 
-//Set parameter of a particular pov
-[DllImport("gaussiansplatting", EntryPoint = "SetPovParameters")] public static extern void SetPovParameters(int pov, int width, int height);
+//Remove a model from cuda
+[DllImport("gaussiansplatting", EntryPoint = "RemoveModelFromCuda")] public static extern bool RemoveModelFromCuda(int model);
 
-//Wait this to be true after sending INIT_EVENT
-[DllImport("gaussiansplatting", EntryPoint = "IsInitialized")] public static extern bool IsInitialized();
+//Set cropbox to crop a model
+[DllImport("gaussiansplatting", EntryPoint = "SetModelCrop")] public static extern void SetModelCrop(int model, float[] box_min, float[] box_max);
 
-//Get native pointer to created target texture for a pov. Use it with Texture2D.CreateExternalTexture
-[DllImport("gaussiansplatting", EntryPoint = "GetTextureNativePointer")] public static extern System.IntPtr GetTextureNativePointer(int pov);
+//Get default cropbox value from a model
+[DllImport("gaussiansplatting", EntryPoint = "GetModelCrop")] public static extern void GetModelCrop(int model, float[] box_min, float[] box_max);
 
-//Set draw parameter for a pov. proj matrix should be sent column first with x inverted. (see matToFloat helper function below)
-[DllImport("gaussiansplatting", EntryPoint = "SetDrawParameters")] public static extern void SetDrawParameters(int pov, float[] position, float[] rotation, float[] proj, float fovy, float[] frustums);
+//Set the model as active or not. if not active it will not be drawn (for unity mapping)
+[DllImport("gaussiansplatting", EntryPoint = "SetActiveModel")] public static extern void SetActiveModel(int model, bool active);
 
-//Wait this to be true after sent DRAW_EVENT
-[DllImport("gaussiansplatting", EntryPoint = "IsDrawn")] public static extern 
-bool IsDrawn();
-
-//Get nb splats of the model
+//Get the total number of splats in cuda memory (just for informations)
 [DllImport("gaussiansplatting", EntryPoint = "GetNbSplat")] public static extern int GetNbSplat();
 
-//Set cropbox to crop splattings
-[DllImport("gaussiansplatting", EntryPoint = "SetCrop")] public static extern void SetCrop(float[] box_min, float[] box_max);
+//Create a new POV
+[DllImport("gaussiansplatting", EntryPoint = "CreatePov")] public static extern int CreatePov();
 
-//Get scene min max splattings positions
-[DllImport("gaussiansplatting", EntryPoint = "GetSceneSize")] public static extern void GetSceneSize(float[] scene_min, float[] scene_max);
+//Remove a POV
+[DllImport("gaussiansplatting", EntryPoint = "RemovePov")] public static extern void RemovePov(int pov);
 
-float[] matToFloat(Matrix4x4 mat)
-    {
-        return new float[16]
-        {
-            mat.m00, mat.m10, mat.m20, mat.m30,
-            mat.m01, mat.m11, mat.m21, mat.m31,
-            mat.m02, -mat.m12, mat.m22, mat.m32,
-            mat.m03, mat.m13, mat.m23, mat.m33,
-        };
-    }
+//Set the POV parameters
+[DllImport("gaussiansplatting", EntryPoint = "SetPovParameters")] public static extern void SetPovParameters(int pov, int width, int height);
+
+//Initialize the POV
+[DllImport("gaussiansplatting", EntryPoint = "IsInitialized")] public static extern bool IsInitialized(int pov);
+
+//Get native pointer to created target texture for a pov. Use it with Texture2D.CreateExternalTexture
+[DllImport("gaussiansplatting", EntryPoint = "GetTextureNativePointer")] public static extern IntPtr GetTextureNativePointer(int pov);
+
+//Set the camera depth texture to be used to merge with gaussians
+[DllImport("gaussiansplatting", EntryPoint = "SetCameraDepthTextureNativePointer")] public static extern void SetCameraDepthTextureNativePointer(int pov, IntPtr ptr);
+
+//Get native pointer of depth texture returned by gaussian renderer
+[DllImport("gaussiansplatting", EntryPoint = "GetDepthTextureNativePointer")] public static extern IntPtr GetDepthTextureNativePointer(int pov);
+
+//Set draw parameter for a pov. proj matrix should be sent column first.
+[DllImport("gaussiansplatting", EntryPoint = "SetDrawParameters")] public static extern void SetDrawParameters(int pov, int model, float[] position, float[] rotation, float[] scale, float[] proj, float fovy, float[] frustums);
+
+//Check if a POV is preprocessed
+[DllImport("gaussiansplatting", EntryPoint = "IsPreprocessed")] public static extern bool IsPreprocessed(int pov);
+//Check if a POV is drawn
+[DllImport("gaussiansplatting", EntryPoint = "IsDrawn")] public static extern bool IsDrawn(int pov);
 ```

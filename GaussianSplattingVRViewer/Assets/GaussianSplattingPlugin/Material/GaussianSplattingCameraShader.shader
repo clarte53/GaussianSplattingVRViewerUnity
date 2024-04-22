@@ -5,11 +5,13 @@ Shader "GaussianSplatting/CameraShader"
         _MainTex ("Main Texture", 2D) = "white" {}
         _GaussianSplattingTexLeftEye("Left Eye", 2D) = "white" {}
         _GaussianSplattingTexRightEye("Right Eye", 2D) = "white" {}
+        _GaussianSplattingDepthTexLeftEye("Depth Left Eye", 2D) = "white" {}
+        _GaussianSplattingDepthTexRightEye("Depth Right Eye", 2D) = "white" {}
+        _Scale("Scale", float) = 1
     }
     SubShader
     {
-        // No culling or depth
-        Cull Off ZWrite Off ZTest Always
+        ZTest Always Cull Off ZWrite Off
 
         Pass
         {
@@ -50,34 +52,40 @@ Shader "GaussianSplatting/CameraShader"
 
             sampler2D _GaussianSplattingTexLeftEye;
             sampler2D _GaussianSplattingTexRightEye;
+            sampler2D _GaussianSplattingDepthTexLeftEye;
+            sampler2D _GaussianSplattingDepthTexRightEye;
+            float _Scale;
             UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
             UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex);
             half4 _MainTex_ST;
 
-            fixed4 frag(v2f i) : SV_Target
+            float4 frag(v2f i) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
             
                 //unity_StereoEyeIndex left = 0 right = 1
-                fixed4 gcol = fixed4(0, 0, 0, 1);
+                float4 gcol;
+                float gdepth;
                 if (unity_StereoEyeIndex == 0) {
                     gcol = tex2D(_GaussianSplattingTexLeftEye, i.uv);
+                    gdepth = tex2D(_GaussianSplattingDepthTexLeftEye, i.uv).r;
                 } else {
                     gcol = tex2D(_GaussianSplattingTexRightEye, i.uv);
+                    gdepth = tex2D(_GaussianSplattingDepthTexRightEye, i.uv).r;
                 }
 
-                float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
-                depth = 1.0f - Linear01Depth(depth);
+                gdepth *= _Scale;
 
-#if defined(UNITY_REVERSED_Z)
-                depth = 1.0f - depth;
-#endif
+                float cam_depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
+                cam_depth = LinearEyeDepth(cam_depth);
 
-                if (depth >= 0.9) {
-                    return gcol;
-                }
-                else {
-                    return UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, UnityStereoScreenSpaceUVAdjust(i.uv, _MainTex_ST));
+                float4 col = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, UnityStereoScreenSpaceUVAdjust(i.uv, _MainTex_ST));
+
+                if (gdepth < cam_depth) {
+                    //Mix background color with gaussian splatting
+                    return float4(col.rgb * (1 - gcol.a) + gcol.rgb * gcol.a, 1);
+                } else {
+                    return col;
                 }
             }
             ENDCG

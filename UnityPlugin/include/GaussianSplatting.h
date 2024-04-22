@@ -1,7 +1,11 @@
 #pragma once
 
 #include <Eigen/Eigen>
+#include <cuda_runtime.h>
+#include <mutex>
+
 typedef Eigen::Matrix<float, 3, 1, Eigen::DontAlign> Vector3f;
+typedef Eigen::Matrix<float, 6, 1, Eigen::DontAlign> Vector6f;
 typedef	Eigen::Matrix<float, 4, 4, Eigen::DontAlign, 4, 4> Matrix4f;
 
 typedef Vector3f Pos;
@@ -13,14 +17,10 @@ class GaussianSplattingRenderer {
 	//TODO: create a parameters
 	int _sh_degree = 3; //used when learning 3 is the default value
 	bool _fastCulling = true;
-	bool _cropping = true;
 	float _scalingModifier = 1.0;
 	
-	//The crop box and scene limit
-	Vector3f _boxmin, _boxmax, _scenemin, _scenemax;
-	
 	//Fix data (the model for cuda)
-	int count;
+	int count = 0;
 	float* pos_cuda = nullptr;
 	float* rot_cuda = nullptr;
 	float* scale_cuda = nullptr;
@@ -28,18 +28,50 @@ class GaussianSplattingRenderer {
 	float* shs_cuda = nullptr;
 	int* rect_cuda = nullptr;
 
-	size_t allocdGeom = 0, allocdBinning = 0, allocdImg = 0;
-	void* geomPtr = nullptr, * binningPtr = nullptr, * imgPtr = nullptr;
-	std::function<char* (size_t N)> geomBufferFunc, binningBufferFunc, imgBufferFunc;
+	struct AllocFuncBuffer {
+		size_t allocd = 0;
+		void* ptr = nullptr;
+		std::function<char* (size_t N)> bufferFunc;
+	};
+
+	std::map<int, AllocFuncBuffer*> geom;
+	std::map<int, AllocFuncBuffer*> binning;
+	std::map<int, AllocFuncBuffer*> img;
 
 	//Changing data (the pov)
-	float* view_cuda = nullptr;
-	float* proj_cuda = nullptr;
-	float* cam_pos_cuda = nullptr;
 	float* background_cuda = nullptr;
+	struct RenderData {
+		int nb_model_allocated = 0;
+		int num_rendered = 0;
+		float* view_cuda = nullptr;
+		float* proj_cuda = nullptr;
+		float* cam_pos_cuda = nullptr;
+		int* model_active = nullptr;
+		int* model_sz = nullptr;
+		float* boxmin = nullptr;
+		float* boxmax = nullptr;
+		float* frustums = nullptr;
+	};
+
+	std::map<int, RenderData*> renData;
+
+	int model_idx = 0;
+
+	struct SplatModel {
+		int index;
+		int size;
+		bool active;
+		Vector3f _boxmin, _boxmax, _scenemin, _scenemax;
+	};
+
+	std::list<SplatModel> models;
+	Vector3f _scenemin, _scenemax;
+
+	std::mutex cuda_mtx;
 
 public:
-	//Cpu version of the datas
+	//Cpu version of the datas (for loading)
+	int count_cpu;
 	std::vector<Pos> pos;
 	std::vector<Rot> rot;
 	std::vector<Scale> scale;
@@ -48,7 +80,18 @@ public:
 
 public:
 	void Load(const char* file) throw(std::bad_exception);
-	void Render(float* image_cuda, Matrix4f view_mat, Matrix4f proj_mat, Vector3f position, float fovy, int width, int height) throw(std::bad_exception);
-	void SetCrop(float* box_min, float* box_max);
-	void GetSceneSize(float* scene_min, float* scene_max);
+	int CopyToCuda();
+	void RemoveModel(int model) throw(std::bad_exception);
+	void SetActiveModel(int model, bool active);
+	void CreateRenderContext(int idx);
+	void RemoveRenderContext(int idx);
+	void Preprocess(int context, const std::map<int, Matrix4f>& view_mat, const std::map<int, Matrix4f>& proj_mat, const std::map<int, Vector3f>& position, Vector6f frumstums, float fovy, int width, int height) throw(std::bad_exception);
+	void Render(int context, float* image_cuda, float* depth_cuda, cudaSurfaceObject_t camera_depth_cuda, float fovy, int width, int height) throw(std::bad_exception);
+	void Render(float* image_cuda, float* depth_cuda, Matrix4f view_mat, Matrix4f proj_mat, Vector3f position, Vector6f frumstums, float fovy, int width, int height) throw(std::bad_exception);
+	void SetModelCrop(int model, float* box_min, float* box_max);
+	void GetModelCrop(int model, float* box_min, float* box_max);
+	int GetNbSplat();
+
+private:
+	void AllocateRenderContexts();
 };

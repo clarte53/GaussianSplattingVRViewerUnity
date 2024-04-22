@@ -14,7 +14,7 @@ public:
 	DXPluginAPI(IUnityInterfaces* interfaces);
 	virtual ~DXPluginAPI();
 	virtual POV* CreatePOV() override;
-	virtual bool Init() override;
+	virtual void Init() override;
 private:
 	ID3D11Device* dxDevice;
 	int _device;
@@ -23,10 +23,16 @@ private:
 		ID3D11Device* dxDevice;
 		ID3D11Texture2D* pTexture = nullptr;
 		ID3D11ShaderResourceView* pShaderView = nullptr;
+		ID3D11Texture2D* pDepthTexture = nullptr;
+		ID3D11ShaderResourceView* pDepthShaderView = nullptr;
+
+		ID3D11Texture2D* pCameraDepthTexture = nullptr;
 
 		DXPOV(ID3D11Device* device);
 		virtual ~DXPOV();
 		virtual bool Init(std::string& message) override;
 		virtual void* GetTextureNativePointer() override;
+		virtual void* GetDepthTextureNativePointer() override;
+		virtual void SetCameraDepthTextureNativePointer(void* ptr) override;
 	};
 };
