@@ -34,7 +34,7 @@ Crop Box is the parameter to crop the model, if it's 0 the value will be setted 
 
 ## Gaussian Splatting Camera Script
 
-This script is used to blit the generated texture by gaussian splatting script to the background of the camera, using left/right texture in VR of only Left texture if VR is not check. It also combine the camera depth with gaussians.
+This script is used to blit the generated texture by gaussian splatting script to the background of the camera, using left/right texture in VR or only Left texture if VR is not check. It also combine the camera depth with gaussians.
 
 ![Gaussian Blit](gaussian_blit.png)
 
