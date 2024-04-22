@@ -62,7 +62,7 @@ By default the rendering resolution of the splats is 50% of the headset native r
 
 Press one `Grip` button fo the VR controllers to rotate and move the scene.
 
-Press both `Grip` buttons to scale the scene. A line wil appear between the two controllers to materialize a ruler that can help scaling the model properly.
+Press both `Grip` buttons to scale the scene. A line will appear between the two controllers to materialize a ruler that can help scaling the model properly.
 
 The `Joystick` on the left controller can be used to translate in the scene. For example, push the joystick forward to fly in the direction pointed by the controller.
 
